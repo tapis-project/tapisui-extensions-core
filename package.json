@@ -1,0 +1,25 @@
+{
+  "name": "tapisui-extensions-core",
+  "version": "0.1.0",
+  "description": "Enables users to create extenstions for TapisUI",
+  "main": "index.ts",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tapis-project/tapisui-extensions-core.git"
+  },
+  "keywords": [
+    "typescript",
+    "tapisui",
+    "TACC",
+    "UT"
+  ],
+  "author": "Nathan Freeman",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tapis-project/tapisui-extensions-core/issues"
+  },
+  "homepage": "https://github.com/tapis-project/tapisui-extensions-core#readme"
+}
