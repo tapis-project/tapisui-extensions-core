@@ -3,9 +3,7 @@
   "version": "0.1.0",
   "description": "Enables users to create extenstions for TapisUI",
   "main": "index.ts",
-  "scripts": {
-    "test": "npm run test"
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tapis-project/tapisui-extensions-core.git"
