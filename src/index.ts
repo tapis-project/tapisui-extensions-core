@@ -8,6 +8,12 @@ export enum EnumTapisCoreService {
   Pods = "pods"
 }
 
+const registeredExtensions = {
+  "@tapis/tapisui-extensions-icicle": {
+    "baseUrls": ["https://icicle.tapis.io"]
+  }
+}
+
 type Implicit = {
   authorizationPath: string
   clientId: string
@@ -17,6 +23,7 @@ type Implicit = {
 
 type OAuth2 = {
   implicit?: Implicit
+  password?: boolean
 }
 
 type AuthMethod = "implicit" | "password"
@@ -105,7 +112,27 @@ const initializeExtension: (configuration: Configuration) => Extension = (config
 
 export default initializeExtension
 
-// workflows, pods
+const workflowsService: Service & {route: string} = {
+  id: "workflows",
+  route: "workflows",
+  sidebarName: "Workflows",
+  icon: "data",
+  component: "WorkflowsRouter"
+}
+
+const minimalExtension = initializeExtension({
+  multiTenantFeatures: false,
+  authentication: {
+    password: true
+  },
+  removeServices: [],
+  mainSidebarServices: ["workflows"],
+  authMethods: ["password"],
+  logo: {
+    logoText: "TapisUI"
+  }
+})
+
 
 const icicleExtension = initializeExtension({
   multiTenantFeatures: false,
