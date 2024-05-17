@@ -8,8 +8,8 @@ export enum EnumTapisCoreService {
   Pods = "pods"
 }
 
-const registeredExtensions = {
-  "@tapis/tapisui-extensions-icicle": {
+export const registeredExtensions = {
+  "@icicle/tapisui-extensions-icicle": {
     "baseUrls": ["https://icicle.tapis.io"]
   }
 }
@@ -59,102 +59,54 @@ type ServiceMapping = {
 }
 
 class Extension {
-    public serviceMapping: ServiceMapping
-    public configuration: Configuration
+  public serviceMapping: ServiceMapping
+  public configuration: Configuration
 
-    constructor(configuration?: Configuration) {
-      this.serviceMapping = {}
-      this.setConfiguration(configuration)
+  constructor(configuration?: Configuration) {
+    this.serviceMapping = {}
+    this.setConfiguration(configuration)
+  }
+
+  setConfiguration(configuration: Configuration): void {
+    let modifiedAuthPath = configuration.authentication.implicit.authorizationPath
+    modifiedAuthPath.replace(/\/{2,}/g, "/").replace("/", "")
+    configuration.authentication.implicit.authorizationPath = modifiedAuthPath
+    this.configuration = configuration
+  }
+
+  registerService(service: Service): void {
+    // Checking uniqueness of service id
+    if (
+      service.id in this.serviceMapping
+      || service.id in Object.values(EnumTapisCoreService)
+    ) {
+      throw new Error(`service.id, '${service.id}', conflicts with an existing service.id.`)
+    }
+    // Ensure friendly url from service.id - alphanumeric and hyphen
+    const regex = /^[0-9a-z\-]+$/
+    if (!regex.test(service.id)) {
+      throw new Error(`service.id, '${service.id}', must contain lowercase alphanumerics and hyphens.`)
     }
 
-    setConfiguration(configuration: Configuration): void {
-      let modifiedAuthPath = configuration.authentication.implicit.authorizationPath
-      modifiedAuthPath.replace(/\/{2,}/g, "/").replace("/", "")
-      configuration.authentication.implicit.authorizationPath = modifiedAuthPath
-      this.configuration = configuration
+    const registeredService: RegisteredService = {
+      ...service,
+      route: service.id
     }
 
-    registerService(service: Service): void {
-      // Checking uniqueness of service id
-      if (
-        service.id in this.serviceMapping
-        || service.id in Object.values(EnumTapisCoreService)
-      ) {
-        throw new Error(`service.id, '${service.id}', conflicts with an existing service.id.`)
-      }
-      // Ensure friendly url from service.id - alphanumeric and hyphen
-      const regex = /^[0-9a-z\-]+$/
-      if (!regex.test(service.id)) {
-        throw new Error(`service.id, '${service.id}', must contain lowercase alphanumerics and hyphens.`)
-      }
+    this.serviceMapping[service.id] = registeredService
+  }
 
-      const registeredService: RegisteredService = {
-        ...service,
-        route: service.id
-      }
-
-      this.serviceMapping[service.id] = registeredService
+  getServiceIds(): Array<Service> {
+    const serviceIdsArray = []
+    for (let key in this.serviceMapping) {
+      serviceIdsArray.push(this.serviceMapping[key])
     }
 
-    getServiceIds(): Array<Service> {
-      const serviceIdsArray = []
-      for (let key in this.serviceMapping) {
-        serviceIdsArray.push(this.serviceMapping[key])
-      }
-
-      return serviceIdsArray
-    }
+    return serviceIdsArray
+  }
 }
 
-const initializeExtension: (configuration: Configuration) => Extension = (configuration) => {
+export const initializeExtension: (configuration: Configuration) => Extension = (configuration) => {
   return new Extension(configuration)
 }
 
-export default initializeExtension
-
-const workflowsService: Service & {route: string} = {
-  id: "workflows",
-  route: "workflows",
-  sidebarName: "Workflows",
-  icon: "data",
-  component: "WorkflowsRouter"
-}
-
-const minimalExtension = initializeExtension({
-  multiTenantFeatures: false,
-  authentication: {
-    password: true
-  },
-  removeServices: [],
-  mainSidebarServices: ["workflows"],
-  authMethods: ["password"],
-  logo: {
-    logoText: "TapisUI"
-  }
-})
-
-
-const icicleExtension = initializeExtension({
-  multiTenantFeatures: false,
-  authentication: {
-    implicit: {
-      authorizationPath: "v3/oauth2/authorize",
-      clientId: "myclientid",
-      redirectURI: "https://dev.develop.tapis.io/tapis-ui/#/oauth2/callback",
-      responseType: "token"
-    }
-  },
-  removeServices: [EnumTapisCoreService.Apps],
-  mainSidebarServices: ["workflows", "pods", "ml-edge"],
-  authMethods: ["implicit", "password"],
-  logo: {
-    logoText: "ICICLE"
-  }
-})
-
-icicleExtension.registerService({
-  id: "ml-edge",
-  sidebarName: "ML Edge",
-  icon: "share",
-  component: "Hello from the extension library"
-})
